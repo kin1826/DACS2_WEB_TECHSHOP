@@ -1,7 +1,8 @@
 <?php
-// dynamic_header.php
-// Include this file in your PHP pages where you want the draggable header.
-// Example: <?php include 'dynamic_header.php';
+$isLoggedIn = isset($_SESSION['user_id']);
+$username = $isLoggedIn ? (isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'User') : '';
+$userAvatar = $isLoggedIn ? (isset($_SESSION['user_avatar']) ? $_SESSION['user_avatar'] : '') : '';
+$userEmail = $isLoggedIn ? (isset($_SESSION['user_email']) ? $_SESSION['user_email'] : '') : '';
 ?>
 
 <!doctype html>
@@ -10,18 +11,18 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Dynamic Draggable Header</title>
-<!--  <link rel="stylesheet" hre>-->
+  <link rel="stylesheet" href="css/header.css">
 </head>
 <body>
 
 <!-- Header component -->
 <header id="dynamicHeader" class="dynamic-header" role="banner" aria-label="Thanh điều hướng động">
-  <div class="dh__logo">
+  <a href="index.php" class="dh__logo" style="text-decoration: none; color: black">
     <div class="dot">HB</div>
     <div>
       <div class="dh__title">Tech Shop</div>
     </div>
-  </div>
+  </a>
 
   <div class="dh__spacer"></div>
 
@@ -34,13 +35,13 @@
         </a>
       </li>
       <li>
-        <a href="about.php" data-tooltip="Sản phẩm" class="dh__inmenu">
+        <a href="products.php" data-tooltip="Sản phẩm" class="dh__inmenu">
           <i class="fa-solid fa-shop"></i>
           <span class="hv_left_right">Sản phẩm</span>
         </a>
       </li>
       <li>
-        <a href="products.php" data-tooltip="Giới thiệu" class="dh__inmenu">
+        <a href="about.php" data-tooltip="Giới thiệu" class="dh__inmenu">
           <i class="fa-solid fa-address-card"></i>
           <span class="hv_left_right">Giới thiệu</span>
         </a>
@@ -51,186 +52,56 @@
           <span class="hv_left_right">Liên hệ</span>
         </a>
       </li>
+      <li class="user-dropdown">
+        <a href="login.php"
+           id="userToggle"
+           data-tooltip="<?php echo $isLoggedIn ? 'Tài khoản' : 'Đăng nhập'; ?>"
+           data-loggedin="<?php echo $isLoggedIn ? 'true' : 'false'; ?>">
 
-      <li>
-        <a href="contact.php" data-tooltip="abc">
-          <i class="fa-solid fa-user"></i>
+          <?php if ($isLoggedIn && !empty($userAvatar)): ?>
+            <!-- Đã đăng nhập và có avatar - hiển thị hình tròn -->
+            <img src="<?php echo $userAvatar; ?>"
+                 alt="Avatar"
+                 class="user-avatar-hd">
+          <?php else: ?>
+            <!-- Chưa đăng nhập hoặc không có avatar - hiển thị icon -->
+            <i class="fa-solid fa-user"></i>
+          <?php endif; ?>
         </a>
+        <ul class="user-menu">
+          <?php if ($isLoggedIn): ?>
+            <!-- Đã đăng nhập - hiển thị thông tin user -->
+            <li class="user-info">
+              <div class="user-name"><?php echo htmlspecialchars($username); ?></div>
+              <?php if (!empty($userEmail)): ?>
+                <div class="user-email"><?php echo htmlspecialchars($userEmail); ?></div>
+              <?php endif; ?>
+            </li>
+            <li><a href="account.php">Trang cá nhân</a></li>
+            <li><a href="account.php?tab=orders">Đơn hàng</a></li>
+            <li><a href="settings.php">Cài đặt</a></li>
+            <li><a href="logout.php" style="color: red">Đăng xuất</a></li>
+          <?php else: ?>
+            <!-- Chưa đăng nhập - hiển thị menu đăng nhập -->
+            <li><a href="login.php">Đăng nhập</a></li>
+            <li><a href="register.php">Đăng ký</a></li>
+          <?php endif; ?>
+        </ul>
       </li>
 
       <li>
-        <a href="contact.php" data-tooltip="Cài đặt">
-          <i class="fa-solid fa-gear"></i>
-        </a>
+        <a href="cart.php" data-tooltip="Giỏ hàng"><i class="fa-solid fa-cart-shopping"></i></a>
       </li>
     </ul>
   </nav>
 
   <div id="dhHandle" class="dh__handle" title="Kéo để di chuyển">
-    <i class="fa-solid fa-bars"></i>
+    <a href="javascript:void(0)" id="toggleMenu"><i class="fa-solid fa-bars"></i></a>
   </div>
+
 </header>
 
-<script>
-  (function(){
-    const header = document.getElementById('dynamicHeader');
-    const handle = document.getElementById('dhHandle');
-    const toggleCorner = document.getElementById('toggleCorner');
-    let dragging = false;
-    let startX=0, startY=0, origX=0, origY=0;
-
-    // Load saved state (dock edge & offset)
-    const STATE_KEY = 'dynamicHeaderState_v1';
-    function saveState(state){ localStorage.setItem(STATE_KEY, JSON.stringify(state)); }
-    function loadState(){ try{ return JSON.parse(localStorage.getItem(STATE_KEY) || 'null'); }catch(e){return null} }
-
-    // Apply dock class and position
-    function applyState(state){
-      header.classList.remove('dock-top','dock-bottom','dock-left','dock-right');
-      header.style.left = '';
-      header.style.top = '';
-      header.style.right = '';
-      header.style.bottom = '';
-      header.style.transform = '';
-
-      if(!state) return;
-      const edge = state.edge;
-      const pos = state.pos ?? 0.5;
-      if(edge === 'top'){
-        header.classList.add('dock-top');
-        header.style.left = (pos*100) + '%';
-        header.style.transform = 'translateX(-50%)';
-        header.style.top = '12px';
-        header.style.bottom = 'auto';
-      } else if(edge === 'bottom'){
-        header.classList.add('dock-bottom');
-        header.style.left = (pos*100) + '%';
-        header.style.transform = 'translateX(-50%)';
-        header.style.bottom = '12px';
-        header.style.top = 'auto';
-      } else if(edge === 'left'){
-        header.classList.add('dock-left');
-        header.style.top = (pos*100) + '%';
-        header.style.transform = 'translateY(-50%)';
-        header.style.left = '12px';
-      } else if(edge === 'right'){
-        header.classList.add('dock-right');
-        header.style.top = (pos*100) + '%';
-        header.style.transform = 'translateY(-50%)';
-        header.style.right = '12px';
-        header.style.left = 'auto';
-      }
-    }
-
-    // initial
-    const initial = loadState();
-    if(initial) applyState(initial);
-
-    // helper to get bounding center normalized
-    function getNormalizedCenter(x,y){
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      return {x: x / vw, y: y / vh};
-    }
-
-    function onPointerDown(e){
-      dragging = true;
-      header.classList.add('dragging');
-      startX = e.clientX; startY = e.clientY;
-      const rect = header.getBoundingClientRect();
-      origX = rect.left; origY = rect.top;
-      document.addEventListener('pointermove', onPointerMove);
-      document.addEventListener('pointerup', onPointerUp);
-    }
-
-    function onPointerMove(e){
-      if(!dragging) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      header.style.left = (origX + dx) + 'px';
-      header.style.top = (origY + dy) + 'px';
-      header.style.right = 'auto'; header.style.bottom = 'auto';
-      header.style.transform = 'none';
-    }
-
-    function onPointerUp(e){
-      dragging = false;
-      header.classList.remove('dragging');
-      document.removeEventListener('pointermove', onPointerMove);
-      document.removeEventListener('pointerup', onPointerUp);
-
-      // determine nearest edge by center point
-      const rect = header.getBoundingClientRect();
-      const cx = rect.left + rect.width/2;
-      const cy = rect.top + rect.height/2;
-
-      const {x: nx, y: ny} = getNormalizedCenter(cx, cy);
-      // distances to edges (normalized)
-      const toTop = ny;
-      const toBottom = 1 - ny;
-      const toLeft = nx;
-      const toRight = 1 - nx;
-      const min = Math.min(toTop,toBottom,toLeft,toRight);
-
-      let edge = 'top';
-      if(min === toTop) edge = 'top';
-      else if(min === toBottom) edge = 'bottom';
-      else if(min === toLeft) edge = 'left';
-      else if(min === toRight) edge = 'right';
-
-      // compute position along edge (0..1)
-      let pos = 0.5;
-      if(edge === 'top' || edge === 'bottom'){
-        const vw = window.innerWidth;
-        pos = Math.min(0.95, Math.max(0.05, (cx / vw)));
-      } else {
-        const vh = window.innerHeight;
-        pos = Math.min(0.95, Math.max(0.05, (cy / vh)));
-      }
-
-      const newState = {edge, pos};
-      applyState(newState);
-      saveState(newState);
-    }
-
-    // Attach pointerdown to header handle and header itself
-    handle.addEventListener('pointerdown', onPointerDown);
-    header.addEventListener('pointerdown', function(e){
-      // nếu nhấn vào nút bên trong thì không bắt drag
-      if(e.target.closest('button') || e.target.closest('a')) return;
-      onPointerDown(e);
-    });
-
-    // Toggle border-radius example
-    toggleCorner.addEventListener('click', ()=>{
-      const cur = getComputedStyle(header).borderRadius;
-      if(cur.includes('18')){
-        header.style.borderRadius = '6px';
-      } else {
-        header.style.borderRadius = '';
-      }
-    });
-
-    // keyboard: press D to cycle docks (accessible)
-    window.addEventListener('keydown', (e)=>{
-      if(e.key.toLowerCase()==='d'){
-        const order = ['top','right','bottom','left'];
-        const st = loadState() || {edge:'top',pos:0.5};
-        const idx = order.indexOf(st.edge || 'top');
-        const next = order[(idx+1)%order.length];
-        const ns = {edge: next, pos: 0.5};
-        applyState(ns); saveState(ns);
-      }
-    });
-
-    // ensure header stays visible on resize
-    window.addEventListener('resize', ()=>{
-      const st = loadState();
-      if(st) applyState(st);
-    });
-
-  })();
-</script>
+<script src="js/headerJS.js"></script>
 
 </body>
 </html>
