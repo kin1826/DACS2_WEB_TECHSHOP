@@ -12,7 +12,7 @@
 html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI', Roboto, 'Helvetica Neue', Arial}
 main{padding:20px}
 
-/* Container để header có thể fixed mọi nơi */
+ /*Container để header có thể fixed mọi nơi */
 .dynamic-header{
   position: fixed;
   top: 12px; /* mặc định ở trên */
@@ -27,6 +27,7 @@ main{padding:20px}
   gap:12px;
   padding:8px 14px;
   box-sizing: border-box;
+
   background: linear-gradient(135deg, rgba(14,165,164,0.12), rgba(255,255,255,0.02));
   color:var(--fg);
   backdrop-filter: blur(6px) saturate(120%);
@@ -39,6 +40,9 @@ main{padding:20px}
 }
 
 .dynamic-header.dragging{cursor:grabbing; transition: none !important; }
+.dynamic-header * {
+  mix-blend-mode: difference;
+}
 
 /* content bên trong */
 .dh__logo{
@@ -73,9 +77,8 @@ main{padding:20px}
 /* Small screens */
 @media (max-width:640px){
   .dynamic-header{ width: calc(92vw); }
-  .dock-left, .dock-right{ display:none; } /* ẩn dọc trên mobile để tránh che nội dung */
-  .dh__title {font-size: 12px}
-  .dh__menu li .dh__inmenu {display: none}
+  /*.dock-left, .dock-right{ display:none; } !* ẩn dọc trên mobile để tránh che nội dung *!*/
+  .dh__title {font-size: 16px}
   .dh__handle {display: flex; font-size: 20px; justify-content: center; align-items: center}
 }
 /*in menu*/
@@ -102,7 +105,7 @@ main{padding:20px}
 }
 
 .dh__menu li a:hover {
-  background: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0);
   transform: translateY(-1px);
 }
 
@@ -115,6 +118,14 @@ main{padding:20px}
 .dock-left .dh__menu li a span,
 .dock-right .dh__menu li a span {
   display: none;
+}
+
+.dock-left .dh__logo,
+.dock-right .dh__logo {
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
 }
 
 .dock-left .dh__menu,
@@ -163,4 +174,176 @@ main{padding:20px}
 .dock-right .dh__menu li a:hover::after {
   opacity: 1;
   transform: translateY(-50%) translateX(0);
+}
+
+/* Mặc định: hiển thị menu bình thường */
+/*.dh__menu {*/
+/*  display: flex;*/
+/*  list-style: none;*/
+/*  padding: 0;*/
+/*  margin: 0;*/
+/*  transition: max-height 0.3s ease, opacity 0.3s ease;*/
+/*}*/
+
+/* Ẩn menu trên thiết bị nhỏ */
+@media (max-width: 768px) {
+  .dh__menu {
+    flex-direction: column;
+    position: absolute;
+    top: 80px; /* dưới thanh handle */
+    left: 0;
+    width: 100%;
+    background: rgba(180, 180, 180, 0.41);
+    border-radius: 12px;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Khi mở */
+  .dh__menu.active {
+    max-height: 500px;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .dh__menu li a {
+    display: flex;
+    padding: 12px 16px;
+    text-align: center;
+    width: 100%;
+    /*display: block;*/
+    gap: 10px
+  }
+
+  /* Ẩn chữ, chỉ hiện icon khi menu đóng */
+  .dh__menu:not(.active) .hv_left_right {
+    display: none;
+  }
+
+  /* Căn giữa handle */
+  .dh__handle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    cursor: pointer;
+  }
+}
+
+.user-dropdown {
+  position: relative;
+}
+
+/* menu con */
+.user-dropdown .user-menu {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  padding: 5px 0;
+  list-style: none;
+  min-width: 160px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: all 0.25s ease;
+  z-index: 1000;
+
+  /* --- Hiệu ứng kính mờ (frosted glass) --- */
+  background: linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06));
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+
+  border: 1px solid rgba(255,255,255,0.25);
+  box-shadow:
+    0 8px 24px rgba(0,0,0,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+.dock-left .user-dropdown .user-menu {
+  top: auto;
+  bottom: 10px;
+  left: 40px;
+}
+.dock-right .user-dropdown .user-menu {
+  top: auto;
+  bottom: 10px;
+  right: 40px;
+}
+.dock-bottom .user-dropdown .user-menu {
+  top: auto;
+  bottom: 40px;
+}
+
+.user-dropdown .user-menu li a {
+  display: block;
+  padding: 8px 14px;
+  color: black;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.user-dropdown .user-menu li a:hover {
+  background: #f2f2f2;
+}
+
+/* PC hover */
+@media (hover: hover) {
+  .user-dropdown:hover .user-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+/* MOBILE: click để mở */
+@media (max-width: 768px) {
+  .user-dropdown .user-menu {
+    position: fixed;
+    top: auto;
+    right: auto;
+    min-width: 180px;
+    border-radius: 10px;
+  }
+
+  .user-dropdown .user-menu a {
+    text-align: left;
+  }
+
+  .user-dropdown.active .user-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+.user-avatar-hd {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ddd;
+  transition: all 0.3s ease;
+}
+
+.user-avatar-hd:hover {
+  border-color: #007bff;
+  transform: scale(1.1);
+}
+
+.fa-user {
+  font-size: 18px;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.fa-user:hover {
+  color: #007bff;
 }
