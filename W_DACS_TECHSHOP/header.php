@@ -3,6 +3,7 @@ $isLoggedIn = isset($_SESSION['user_id']);
 $username = $isLoggedIn ? (isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'User') : '';
 $userAvatar = $isLoggedIn ? (isset($_SESSION['user_avatar']) ? $_SESSION['user_avatar'] : '') : '';
 $userEmail = $isLoggedIn ? (isset($_SESSION['user_email']) ? $_SESSION['user_email'] : '') : '';
+$isAdmin = $isLoggedIn ? (isset($_SESSION['is_admin']) ? $_SESSION['is_admin'] : '') : '';
 ?>
 
 <!doctype html>
@@ -80,11 +81,16 @@ $userEmail = $isLoggedIn ? (isset($_SESSION['user_email']) ? $_SESSION['user_ema
             <li><a href="account.php">Trang cá nhân</a></li>
             <li><a href="account.php?tab=orders">Đơn hàng</a></li>
             <li><a href="settings.php">Cài đặt</a></li>
+
+            <?php if ($isAdmin === "1"): ?>
+              <li><a href="admin.php">Trang quản trị viên</a></li>
+            <?php endif; ?>
+
             <li><a href="logout.php" style="color: red">Đăng xuất</a></li>
           <?php else: ?>
             <!-- Chưa đăng nhập - hiển thị menu đăng nhập -->
             <li><a href="login.php">Đăng nhập</a></li>
-            <li><a href="register.php">Đăng ký</a></li>
+            <li><a href="login.php">Đăng ký</a></li>
           <?php endif; ?>
         </ul>
       </li>

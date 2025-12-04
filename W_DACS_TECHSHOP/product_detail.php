@@ -1,4 +1,25 @@
 <?php
+
+require_once 'class/product.php';
+require_once 'class/product_image.php';
+require_once 'class/product_variant.php';
+
+if (!empty($_GET['id'])) {
+  $product_id = (int)$_GET['id']; // Ép kiểu để bảo mật
+
+  // Lấy thông tin sản phẩm từ database
+  $product = getProductById($product_id);
+
+  if ($product) {
+    // Hiển thị sản phẩm
+    echo "<h1>" . htmlspecialchars($product['name']) . "</h1>";
+  } else {
+    echo "Sản phẩm không tồn tại!";
+  }
+} else {
+  echo "Không tìm thấy sản phẩm!";
+}
+
 ?>
 
 <!doctype html>
@@ -43,8 +64,6 @@
         <a href="index.php">Trang chủ</a>
         <span>/</span>
         <a href="products.php">Sản phẩm</a>
-        <span>/</span>
-        <a href="products.php?category=smartphone">Điện thoại</a>
         <span>/</span>
         <a href="product_detail.php" class="active">iPhone 15 Pro Max</a>
       </nav>
